@@ -44,7 +44,7 @@ function [Xhat,G,K] = tucker_hosvd(X, rank, varargin)
     for i = 1:nway
         Xi = double(tenmat(X,i));
         [U,~,~] = svd(Xi);
-        K{i} = U(:,rank(i));
+        K{i} = U(:,1:rank(i));
         G = ttm(G, K{i}, i, 't');
     end
     Xhat = tensor(ttensor(G, K));
