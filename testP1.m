@@ -13,6 +13,9 @@ maxiters_cp = 100;
 abstol_cp = 1e-2;
 difftol_cp = 1e-4;
 
+% Parameter for Tucker decomposition
+rank_tucker = [2,2,1];
+
 % Set random seed
 %rng(seed);
 
@@ -28,7 +31,13 @@ difftol_cp = 1e-4;
 [Yhat_CP, lambda_Y_CP, K_Y_CP, K_init_Y_CP, converge_Y_CP] = ...
     cp_decomp_als(Y, rank_cp,...
         'maxiters', maxiters_cp, 'verbose', verbose,...
-        'abstol', abstol_cp, 'difftol', difftol_cp);    
+        'abstol', abstol_cp, 'difftol', difftol_cp);
+    
+% Get Tucker decomposition via HOSVD
+[Xhat_HOSVD, G_X_HOSVD, K_X_HOSVD] = ...
+    tucker_hosvd(X, rank_tucker, 'verbose', verbose);
+[Yhat_HOSVD, G_Y_HOSVD, K_Y_HOSVD] = ...
+    tucker_hosvd(X, rank_tucker, 'verbose', verbose);
 
 % Inner production computation
 ip_acc = innerprod(X,Y);
@@ -37,3 +46,7 @@ ip_CP = innerprod(Xhat_CP,Yhat_CP);
 fprintf(['Inner product by CP decomposition: %.4f, absolute error: %.4f'...
     ', relative error: %.4f\n'],...
     ip_CP, abs(ip_acc-ip_CP), abs(ip_acc-ip_CP)/abs(ip_acc));
+ip_HOSVD = innerprod(Xhat_HOSVD,Yhat_HOSVD);
+fprintf(['Inner product by Tucker decomposition (HOSVD): %.4f, '...
+    ' absolute error: %.4f, relative error: %.4f\n'],...
+    ip_HOSVD, abs(ip_acc-ip_HOSVD), abs(ip_acc-ip_HOSVD)/abs(ip_acc));

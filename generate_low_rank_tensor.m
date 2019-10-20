@@ -18,5 +18,5 @@ function [X, lambda, K] = generate_low_rank_tensor(dim, rank, lambda_range)
         K{i}=normc(rand(dim(i), rank)*2-1);
     end
     lambda=(rand(rank,1)*2-1)*lambda_range;
-    X=tensor(fixsigns(ktensor(lambda,K)));
+    X=tensor(ktensor(lambda,K));
 end

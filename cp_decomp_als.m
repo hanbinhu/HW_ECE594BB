@@ -89,7 +89,7 @@ function [Xhat,lambda,K,K_init,converge] = cp_decomp_als(X, rank, varargin)
             KtK(j,:,:)= A'*A;
         end
         
-        Xhat = tensor(fixsigns(ktensor(lambda, K)));
+        Xhat = tensor(ktensor(lambda, K));
         
         % Check Convergence
         diff = X-Xhat;
