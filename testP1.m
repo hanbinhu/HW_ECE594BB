@@ -2,15 +2,15 @@ clear; clc; close all;
 % General Parameters
 fixseed = true;
 seed = 2;
-verbose = true;
+verbose = false;
 
 % Parameters for Problem Generation
 dim = [20,50,30];
 range = 10;
 rank_k = 8;
 rank_t = [8,9,10];
-%form = 'Kruskal';
-form = 'Tucker';
+form = 'Kruskal';
+%form = 'Tucker';
 
 % Parameters for CP decomposition
 rank_cp = 30;
@@ -59,11 +59,11 @@ end
 
 % Get Tucker decomposition via HOOI
 [Xhat_HOOI, G_X_HOOI, K_X_HOOI, K_init_X_HOOI, converge_X_HOOI] = ...
-    tucker_hooi(X, rank_tucker, 'verbose', true,...
+    tucker_hooi(X, rank_tucker, 'verbose', verbose,...
         'abstol', abstol_tucker, 'difftol', difftol_tucker,...
         'maxiters', maxiters_tucker);
 [Yhat_HOOI, G_Y_HOOI, K_Y_HOOI, K_init_Y_HOOI, converge_Y_HOOI] = ...
-    tucker_hooi(Y, rank_tucker, 'verbose', true,...
+    tucker_hooi(Y, rank_tucker, 'verbose', verbose,...
         'abstol', abstol_tucker, 'difftol', difftol_tucker,...
         'maxiters', maxiters_tucker);
 
