@@ -32,8 +32,8 @@ difftol_cp = 1e-4;
 
 % Inner production computation
 ip_acc = innerprod(X,Y);
-ip_app = innerprod(Xhat_CP,Yhat_CP);
-
-display(ip_acc);
-display(ip_app);
-
+fprintf('Original inner product: %.4f\n', ip_acc);
+ip_CP = innerprod(Xhat_CP,Yhat_CP);
+fprintf(['Inner product by CP decomposition: %.4f, absolute error: %.4f'...
+    ', relative error: %.4f\n'],...
+    ip_CP, abs(ip_acc-ip_CP), abs(ip_acc-ip_CP)/abs(ip_acc));
