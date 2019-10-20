@@ -1,31 +1,45 @@
 clear; clc; close all;
-seed = 10;
+% General Parameters
+fixseed = true;
+seed = 2;
+verbose = true;
 
-dim = [10,20,15];
-rank = 8;
-lambda_range = 10;
-
-verbose = false;
+% Parameters for Problem Generation
+dim = [20,50,30];
+range = 10;
+rank_k = 8;
+rank_t = [8,9,10];
+%form = 'Kruskal';
+form = 'Tucker';
 
 % Parameters for CP decomposition
-rank_cp = 10;
+rank_cp = 30;
 maxiters_cp = 100;
 abstol_cp = 1e-2;
 difftol_cp = 1e-4;
 
 % Parameter for Tucker decomposition
-%rank_tucker = [7,14,10];
-rank_tucker = [3,6,5];
-maxiters_tucker = 200;
+rank_tucker = [7,9,6];
+maxiters_tucker = 20;
 abstol_tucker = 1e-2;
 difftol_tucker = 1e-4;
 
 % Set random seed
-%rng(seed);
+if fixseed
+    rng(seed);
+else
+    seed = rng;
+end
 
 % Generate the low rank tensor
-[X, lambda_X, K_X] = generate_low_rank_tensor(dim, rank, lambda_range);
-[Y, lambda_Y, K_Y] = generate_low_rank_tensor(dim, rank, lambda_range);
+if strcmp(form, 'Kruskal')
+    [X, l_X, K_X] = generate_low_rank_tensor(dim, rank_k, range, form);
+    [Y, l_Y, K_Y] = generate_low_rank_tensor(dim, rank_k, range, form);
+end
+if strcmp(form, 'Tucker')
+    [X, G_X, K_X] = generate_low_rank_tensor(dim, rank_t, range, form);
+    [Y, G_Y, K_Y] = generate_low_rank_tensor(dim, rank_t, range, form);
+end
 
 % Get CP decomposition
 [Xhat_CP, lambda_X_CP, K_X_CP, K_init_X_CP, converge_X_CP] = ...
@@ -53,18 +67,6 @@ difftol_tucker = 1e-4;
         'abstol', abstol_tucker, 'difftol', difftol_tucker,...
         'maxiters', maxiters_tucker);
 
-% Get Results from the tensor toolbox
-[X_c,~,~]=cp_als(X, rank_cp, 'maxiters', maxiters_cp, 'tol', difftol_cp);
-X_c=tensor(X_c);
-[Y_c,~,~]=cp_als(Y, rank_cp, 'maxiters', maxiters_cp, 'tol', difftol_cp);
-Y_c=tensor(Y_c);
-X_s=tensor(hosvd(X, norm(X), 'ranks', rank_tucker));
-Y_s=tensor(hosvd(Y, norm(Y), 'ranks', rank_tucker));
-[X_o,~]=tucker_als(X, rank_tucker, 'maxiters', maxiters_tucker, 'tol', difftol_tucker);
-X_o=tensor(X_o);
-[Y_o,~]=tucker_als(Y, rank_tucker, 'maxiters', maxiters_tucker, 'tol', difftol_tucker);
-Y_o=tensor(Y_o);
-
 % Inner production computation
 ip_acc = innerprod(X,Y);
 fprintf('Original inner product: %.4f\n', ip_acc);
@@ -80,16 +82,3 @@ ip_HOOI = innerprod(Xhat_HOOI,Yhat_HOOI);
 fprintf(['Inner product by Tucker decomposition (HOOI): %.4f, '...
     ' absolute error: %.4f, relative error: %.4f\n'],...
     ip_HOOI, abs(ip_acc-ip_HOOI), abs(ip_acc-ip_HOOI)/abs(ip_acc));
-
-ip_c = innerprod(X_c,Y_c);
-fprintf(['Inner product by CP decomposition (standard): %.4f, '...
-    ' absolute error: %.4f, relative error: %.4f\n'],...
-    ip_c, abs(ip_acc-ip_c), abs(ip_acc-ip_c)/abs(ip_acc));
-ip_s = innerprod(X_s,Y_s);
-fprintf(['Inner product by Tucker decomposition (HOSVD, standard): %.4f, '...
-    ' absolute error: %.4f, relative error: %.4f\n'],...
-    ip_s, abs(ip_acc-ip_s), abs(ip_acc-ip_s)/abs(ip_acc));
-ip_o = innerprod(X_o,Y_o);
-fprintf(['Inner product by Tucker decomposition (HOOI, standard): %.4f, '...
-    ' absolute error: %.4f, relative error: %.4f\n'],...
-    ip_o, abs(ip_acc-ip_o), abs(ip_acc-ip_o)/abs(ip_acc));

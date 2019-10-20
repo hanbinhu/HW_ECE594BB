@@ -1,22 +1,51 @@
-function [X, lambda, K] = generate_low_rank_tensor(dim, rank, lambda_range)
+function [X, G, K] = generate_low_rank_tensor(dim, rank, range, form)
 %GENERATE_LOW_RANK_TENSOR generates a random low-rank tensor.
-%   The tensor is generated in a Kruskal format. The number of ways of the
-%   generated tensor is given by the length of 'dim'. The kruskal format
-%   uses the normalized matrices and a weighting array lambda.
+%   The tensor is generated in a Kruskal format or Tucker format. The
+%   number of ways of the generated tensor is given by the length of 'dim'.
+%   - The Kruskal format uses the normalized matrices and a weighting array
+%   lambda.
+%   - The Tucker format uses the orthogonal matrices and a weighting array
+%   lambda.
 % Parameter:
 % - 'dim' is an array describing the size of each way. 
-% - 'rank' stands for the rank of CP decomposition.
-% - 'lambda_range' gives the range of lambda following a uniform
-%   distribution [-lambda_range, lambda_range]
+% - 'rank' stands for the rank of Kruskal form or multilinear rank in
+%   Tucker form.
+% - 'range' gives the range of lambda or core tensor following a uniform
+%   distribution [-range, range]
+% - 'form' gives which format is used. ('Kruskal', 'Tucker')
 % Output:
 % - 'X' is the generated tensor.
-% - 'lambda' is the weighting array lambda.
-% - 'K' gives the normalized matrices.
+% - 'G' is the weighting array lambda in Kruskal form or core tensor in
+%   Tucker form.
+% - 'K' gives the normalized matrices in Kruskal form or orthogonal
+%   matrices in Tucker form.
     nway=length(dim);
-    K=cell(1,nway);
-    for i=1:nway
-        K{i}=normc(rand(dim(i), rank)*2-1);
+    if strcmp(form, 'Kruskal')
+        K=cell(1,nway);
+        for i=1:nway
+            K{i}=normc(rand(dim(i), rank)*2-1);
+        end
+        G=(rand(rank,1)*2-1)*range;
+        X=tensor(ktensor(G,K));
+    else
+        if strcmp(form, 'Tucker')
+            K=cell(1,nway);
+            for i=1:nway
+                R=randn(dim(i), rank(i));
+                R(:,1) = R(:,1)/norm(R(:,1));
+                for j = 2:rank(i)
+                    U = R(:,j);
+                    for k = 1:j-1
+                        U = U - (U'*R(:,k))/(R(:,k)'*R(:,k))*R(:,k);
+                    end
+                    R(:,j) = U/norm(U);
+                end
+                K{i}=R;
+            end
+            G=tensor((rand(rank)*2-1)*range);
+            X=tensor(ttensor(G,K));
+        else
+            error('Unknown format.')
+        end
     end
-    lambda=(rand(rank,1)*2-1)*lambda_range;
-    X=tensor(ktensor(lambda,K));
 end

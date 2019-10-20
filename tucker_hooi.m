@@ -6,7 +6,7 @@ function [Xhat,G,K,K_init,converge] = tucker_hooi(X, rank, varargin)
 % Parameter:
 % - 'X' is the tensor for Tucker decomposition.
 % - 'rank' is the multilinear rank for Tucker decomposition.
-% - 'maxiters' (optional, default: 100) is the maximum iteration for the 
+% - 'maxiters' (optional, default: 20) is the maximum iteration for the 
 %   Tucker decomposition.
 % - 'difftol' (optional, default: 1e-4) is the tolerance value for the
 %   change of normalized error norm.
@@ -23,7 +23,7 @@ function [Xhat,G,K,K_init,converge] = tucker_hooi(X, rank, varargin)
     
     % set defaults for optional inputs
     parser = inputParser;
-    parser.addParameter('maxiters', 100,...
+    parser.addParameter('maxiters', 20,...
         @(x) isscalar(x) && x>0 && floor(x)==x);
     parser.addParameter('difftol', 1e-4,...
         @(x) isscalar(x) && x>0);
@@ -64,7 +64,7 @@ function [Xhat,G,K,K_init,converge] = tucker_hooi(X, rank, varargin)
     perr = 0;
     converge = false;
     if verbose
-        fprintf('Start HOOI iterations ... ');
+        fprintf('Start HOOI iterations ...\n');
     end
     for i = 1:maxiters
         % Iterater for matrices
@@ -81,12 +81,9 @@ function [Xhat,G,K,K_init,converge] = tucker_hooi(X, rank, varargin)
             G = ttm(G,K,j,'t');
         end
         
-        Xhat = tensor(ttensor(G, K));
-        
         % Check Convergence
-        diff = X-Xhat;
-        err = sqrt(innerprod(diff, diff));
-        nerr = err / ipX;
+        normG = sqrt(innerprod(G,G));
+        nerr = abs((ipX-normG)/ipX);
         err_diff = abs(nerr-perr);
         if verbose
             fprintf(' Iter %2d: norm_error = %.4e, diff_error = %.4e\n',...
@@ -108,5 +105,6 @@ function [Xhat,G,K,K_init,converge] = tucker_hooi(X, rank, varargin)
             fprintf('Coverged.\n');
         end
     end
+    Xhat = tensor(ttensor(G, K));
 end
 
