@@ -1,6 +1,4 @@
 function [Xhat,tensor_cell,rank] = tensor_train(X, eps, varargin)
-%TENSOR_TRAIN Summary of this function goes here
-%   Detailed explanation goes here
 %TENSOR_TRAIN performs tensor train decomposition on the given tensor.
 %   This function uses tensor train algorithm with adaptive rank selection
 %   to decompose tensor 'X' into a list of small tensors 'tensor_cell'.
