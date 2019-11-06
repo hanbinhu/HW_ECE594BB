@@ -5,9 +5,9 @@ seed = 2;
 verbose = false;
 
 % Parameters for Problem Generation
-dim = [20,50,30];
+dim = [20,50,30,10];
 range = 10;
-rank_k = 8;
+rank_k = 4;
 rank_t = [8,9,10];
 form = 'Kruskal';
 %form = 'Tucker';
@@ -19,10 +19,14 @@ abstol_cp = 1e-2;
 difftol_cp = 1e-4;
 
 % Parameter for Tucker decomposition
-rank_tucker = [7,9,6];
+rank_tucker = [7,9,6,5];
+%rank_tucker = [3,4,2];
 maxiters_tucker = 20;
 abstol_tucker = 1e-2;
 difftol_tucker = 1e-4;
+
+% Parameter for Tensor Train decomposition
+eps_TT = 1e-3;
 
 % Set random seed
 if fixseed
@@ -67,18 +71,30 @@ end
         'abstol', abstol_tucker, 'difftol', difftol_tucker,...
         'maxiters', maxiters_tucker);
 
+% Get Tensor Train decomposition
+[Xhat_TT, Tensor_X_TT, rank_X_TT] = ...
+    tensor_train(X, eps_TT, 'verbose', verbose);
+    
 % Inner production computation
 ip_acc = innerprod(X,Y);
 fprintf('Original inner product: %.4f\n', ip_acc);
+
 ip_CP = innerprod(Xhat_CP,Yhat_CP);
 fprintf(['Inner product by CP decomposition: %.4f, absolute error: %.4f'...
     ', relative error: %.4f\n'],...
     ip_CP, abs(ip_acc-ip_CP), abs(ip_acc-ip_CP)/abs(ip_acc));
+
 ip_HOSVD = innerprod(Xhat_HOSVD,Yhat_HOSVD);
 fprintf(['Inner product by Tucker decomposition (HOSVD): %.4f, '...
     ' absolute error: %.4f, relative error: %.4f\n'],...
     ip_HOSVD, abs(ip_acc-ip_HOSVD), abs(ip_acc-ip_HOSVD)/abs(ip_acc));
+
 ip_HOOI = innerprod(Xhat_HOOI,Yhat_HOOI);
 fprintf(['Inner product by Tucker decomposition (HOOI): %.4f, '...
     ' absolute error: %.4f, relative error: %.4f\n'],...
     ip_HOOI, abs(ip_acc-ip_HOOI), abs(ip_acc-ip_HOOI)/abs(ip_acc));
+
+ip_TT_CP = innerprod(Xhat_TT,Yhat_CP);
+fprintf(['Inner product by Tensor Train decomposition and CP '...
+    'decompostion: %.4f, absolute error: %.4f, relative error: %.4f\n'],...
+    ip_TT_CP, abs(ip_acc-ip_TT_CP), abs(ip_acc-ip_TT_CP)/abs(ip_acc));
