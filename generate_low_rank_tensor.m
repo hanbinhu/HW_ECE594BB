@@ -1,4 +1,4 @@
-function [X, G, K] = generate_low_rank_tensor(dim, rank, range, form)
+function [X, G, K] = generate_low_rank_tensor(dim,rank,range,form,param)
 %GENERATE_LOW_RANK_TENSOR generates a random low-rank tensor.
 %   The tensor is generated in a Kruskal format or Tucker format. The
 %   number of ways of the generated tensor is given by the length of 'dim'.
@@ -29,6 +29,9 @@ function [X, G, K] = generate_low_rank_tensor(dim, rank, range, form)
         X=tensor(ktensor(G,K));
     else
         if strcmp(form, 'Tucker')
+            if numel(param) < 1
+                error('Require argument for Tucker problem generation.')
+            end
             K=cell(1,nway);
             for i=1:nway
                 R=randn(dim(i), rank(i));
@@ -42,7 +45,22 @@ function [X, G, K] = generate_low_rank_tensor(dim, rank, range, form)
                 end
                 K{i}=R;
             end
-            G=tensor((rand(rank)*2-1)*range);
+            rand_tensor=rand(rank)*2-1;
+            weight=ones(rank);
+            distmax = sum(rank)-nway;
+            for i = 1:numel(weight)
+                dist = 0;
+                k = i-1;
+                for j = nway:-1:1
+                    base = prod(rank(1:j-1));
+                    index = floor(k/base);
+                    k=mod(k,base);
+                	dist = dist+index;
+                end
+                weight(i)=1-dist/distmax;
+            end
+            weight = weight.^(param(1));
+            G=tensor(rand_tensor.*weight*range);
             X=tensor(ttensor(G,K));
         else
             error('Unknown format.')

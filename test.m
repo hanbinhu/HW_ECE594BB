@@ -12,6 +12,7 @@ rank_k = 4;
 rank_t = [8,9,10];
 form = 'Kruskal';
 %form = 'Tucker';
+param = [7];
 
 % Parameters for CP decomposition
 rank_cp = 30;
@@ -38,12 +39,12 @@ end
 
 % Generate the low rank tensor
 if strcmp(form, 'Kruskal')
-    [X, l_X, K_X] = generate_low_rank_tensor(dim, rank_k, range, form);
-    [Y, l_Y, K_Y] = generate_low_rank_tensor(dim, rank_k, range, form);
+    [X, l_X, K_X] = generate_low_rank_tensor(dim,rank_k,range,form,param);
+    [Y, l_Y, K_Y] = generate_low_rank_tensor(dim,rank_k,range,form,param);
 end
 if strcmp(form, 'Tucker')
-    [X, G_X, K_X] = generate_low_rank_tensor(dim, rank_t, range, form);
-    [Y, G_Y, K_Y] = generate_low_rank_tensor(dim, rank_t, range, form);
+    [X, G_X, K_X] = generate_low_rank_tensor(dim,rank_t,range,form,param);
+    [Y, G_Y, K_Y] = generate_low_rank_tensor(dim,rank_t,range,form,param);
 end
 
 % Get CP decomposition
